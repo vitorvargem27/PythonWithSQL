@@ -9,6 +9,31 @@ conection = pymysql.connect(
     cursorclass=pymysql.cursors.DictCursor
 )
 
+def readData() :
+    with conection.cursor() as cursor :
+        cpfUsuario = input(str("Digite o CPF do seu usuário abaixo para ver seus dados :\n"))
+        cursor.execute(f'SELECT * FROM clientes WHERE cpf_cliente = {cpfUsuario}')
+        data = cursor.fetchall()
+        for dataUser in data :
+            print(f"Nome do cliente : {dataUser['nome_cliente']}")
+            print(f"CPF do cliente : {dataUser['cpf_cliente']}")
+            print(f"Usuário do cliente : {dataUser['username_cliente']}")
+            print(f"Id do cliente : {dataUser['id_cliente']}")
+
+def delete() :
+    continuarExclusao = True
+    while continuarExclusao :
+        with conection.cursor() as cursor :
+            print("Para excluir seu usuário, basta digitar seu CPF abaixo:")
+            cpfClienteExclusao = input('Digite o seu cpf:\n ')
+            cursor.execute(f'DELETE FROM clientes WHERE cpf_cliente = {cpfClienteExclusao}')
+            conection.commit()
+            print(f"Cliente com o CPF {cpfClienteExclusao} excluído com sucesso")
+            seguirExclusao = input("Deseja excluir outro usuário?[S/N]").upper()
+            if seguirExclusao == 'N':
+                continuarExclusao = False
+                break
+
 def create() :
     with conection.cursor() as cursor :
         nomeCliente = str(input('Digite o seu nome:\n '))
@@ -26,16 +51,11 @@ def create() :
         conection.commit()
         print('Usuário criado com sucesso!')
 
-def delete() :
-    with conection.cursor() as cursor :
-        cursor.execute('SELECT username_cliente, password_cliente FROM clientes')
-
-
 def choice_Options() :
     print("Opções dentro da plataforma:\n"
           "[1] Adicionar\n"
-          "[2] Editar\n"
-          "[3] Excluir\n"
+          "[2] Excluir\n"
+          "[3] Editar\n"
           "[4] Ver dados")
     choice_Value = int(input('O que você deseja fazer?\n'))
     return choice_Value
@@ -62,3 +82,8 @@ if authenticated() :
     choice = choice_Options()
     if choice == 1 :
         create()
+    elif choice == 2 :
+        delete()
+
+    elif choice == 4 :
+        readData()
