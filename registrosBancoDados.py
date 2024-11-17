@@ -9,6 +9,47 @@ conection = pymysql.connect(
     cursorclass=pymysql.cursors.DictCursor
 )
 
+def OrderStatistic() :
+    nomeProdutos = []
+    nomeProdutos.clear()
+
+    with conection.cursor() as cursor:
+        cursor.execute('SELECT * FROM pedidos')
+        produtosData = cursor.fetchall()
+        
+
+def createOrder() :
+    continuarPedido = True
+    with conection.cursor() as cursor:
+        cursor.execute("SELECT nome_cliente, username_cliente FROM clientes")
+        dadoCliente = cursor.fetchall()
+        for cliente in dadoCliente :
+            nomeCliente = cliente['nome_cliente']
+            while continuarPedido :
+                user = str(input("Digite o username do cliente que fará o pedido :\n"))
+                if user in cliente['username_cliente']:
+                    pedidoCliente = str(input("Digite seu pedido : \n - PIZZA \n - LANCHE\n")).upper()
+                    if pedidoCliente == 'PIZZA' :
+                        cursor.execute(f"INSERT INTO pedidos (nome_cliente,pedido_cliente, ingredientes_pedido)"
+                                       f" VALUES ('{nomeCliente}'"
+                                       f",'{pedidoCliente}',"
+                                       f"'mussarela, tomate')")
+                        conection.commit()
+                        print(f"Pedido {pedidoCliente} adicionado com sucesso!")
+                        continuarPedido = False
+
+                    elif pedidoCliente == 'LANCHE' :
+                        cursor.execute(f"INSERT INTO pedidos (nome_cliente,pedido_cliente, ingredientes_pedido)"
+                                       f" VALUES ('{nomeCliente}'"
+                                       f",'{pedidoCliente}',"
+                                       f"'pão, queijo')")
+                        conection.commit()
+                        print(f"Pedido {pedidoCliente} adicionado com sucesso!")
+                        continuarPedido = False
+
+                else :
+                    print("Usuário inexistente")
+
 def readData() :
     with conection.cursor() as cursor :
         cpfUsuario = input(str("Digite o CPF do seu usuário abaixo para ver seus dados :\n"))
@@ -19,6 +60,39 @@ def readData() :
             print(f"CPF do cliente : {dataUser['cpf_cliente']}")
             print(f"Usuário do cliente : {dataUser['username_cliente']}")
             print(f"Id do cliente : {dataUser['id_cliente']}")
+
+def updateData() :
+    with conection.cursor() as cursor :
+        cpfUsuario = input("Indique o CPF do usuário que será alterado :\n")
+        cursor.execute(f'SELECT * FROM clientes WHERE cpf_cliente = {cpfUsuario}')
+        data = cursor.fetchall()
+        for dataUser in data :
+            print(f"Nome do Usuário atual : {dataUser['nome_cliente']}")
+            print(f"CPF do cliente : {dataUser['cpf_cliente']}")
+            print(f"Username do usuário atual : {dataUser['username_cliente']}")
+            escolhaMudanca = int(input("Escolha o que deseja alterar :\n"
+                                       "[1] Nome do usuário\n"
+                                       "[2] Username do Usuário\n"
+                                       "[3] Ambos\n"))
+            if escolhaMudanca == 1 :
+                nomeModificado = str(input("Digite o novo nome do usuário abaixo :\n"))
+                cursor.execute(f"UPDATE clientes SET nome_cliente = '{nomeModificado}'"
+                               f" WHERE cpf_cliente = '{cpfUsuario}'")
+                conection.commit()
+            elif escolhaMudanca == 2 :
+                usernameModificado = str(input("Escreva abaixo o novo username para o usuário\n"))
+                cursor.execute(f"UPDATE clientes SET username_cliente = '{usernameModificado}'"
+                               f" WHERE cpf_cliente = '{cpfUsuario}'")
+                conection.commit()
+            elif escolhaMudanca == 3 :
+                nomeModificado = str(input("Digite o novo nome do usuário abaixo :\n"))
+                usernameModificado = str(input("Escreva abaixo o novo username para o usuário\n"))
+                cursor.execute(f"UPDATE clientes SET nome_cliente = '{nomeModificado}',"
+                               f"username_cliente = '{usernameModificado}'"
+                               f" WHERE cpf_cliente = '{cpfUsuario}'")
+                conection.commit()
+
+
 
 def delete() :
     continuarExclusao = True
@@ -56,7 +130,8 @@ def choice_Options() :
           "[1] Adicionar\n"
           "[2] Excluir\n"
           "[3] Editar\n"
-          "[4] Ver dados")
+          "[4] Ver dados\n"
+          "[5] Realizar pedido\n")
     choice_Value = int(input('O que você deseja fazer?\n'))
     return choice_Value
 
@@ -84,6 +159,9 @@ if authenticated() :
         create()
     elif choice == 2 :
         delete()
-
+    elif choice == 3 :
+        updateData()
     elif choice == 4 :
         readData()
+    elif choice == 5 :
+        createOrder()
